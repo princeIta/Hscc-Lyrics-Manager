@@ -1,0 +1,651 @@
+#:import Window kivy.core.window.Window
+#:import IconButton kivymd.button.MDIconButton
+# :import kivy.utils
+#:import textfield kivymd.textfields.MDTextField
+#:import NoTransition kivy.uix.screenmanager.NoTransition
+#:import MDTextField kivymd.textfields.MDTextField
+#:import Clipboard kivy.core.clipboard.Clipboard
+#:import NoEffect kivy.effects.scroll.ScrollEffect
+
+<RootScrMgr>:
+    id: _root_scr_mgr
+    SplashScreen:
+        id: _splash_screen
+        name: 'splash_screen'
+    HomeScreen:
+        id: _home_screen
+        name: 'home_screen'
+
+<TextInput>:
+    scroll_x: 1
+    scroll_y: 1
+
+<BubbledTextInput>:
+    scroll_x: 1
+    scroll_y: 1
+    use_bubble: True
+    allow_copy: True
+    # text: ('Palimm'*10+"\\n")*40
+    # multiline: True
+    #readonly: True
+
+<CustomButton>:
+    color: 0, 0, 0, 1
+    background_color: 0,1,0,0
+    canvas.before:
+        Color:
+            rgba:  (1,1,1,1) if self.state == 'normal' else (0.8,0.8,0.8,1)# (255/255, 71/255, 109/255, 1) #233,30,99,1#(255/255, 71/255, 109/255, 1) if self.state == 'normal' else hex_color('#E91E63')#233,30,99,1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<RetrievedDataItemStyling>:
+    canvas.before:
+        Color:
+            rgba: root.colors('#fafafa')[:-1]+[1]
+        Rectangle:
+            size: self.size#self.size
+            pos: self.pos#self.pos
+    color: self.colors('#222222')
+    #text_size: self.size
+
+<ThContainer>:
+    canvas.before:
+        Color:
+            rgba: root.colors('#fafafa')[:-1]+[1]
+        Rectangle:
+            size: self.size#self.size
+            pos: self.pos#self.pos
+
+<DeleteLyricsWindow>:
+    delete_lyrics_btn: delete_lyrics_btn
+    cancel_btn: cancel_btn
+    size_hint: 0.37, 0.35
+    auto_dismiss: False
+    padding: dp(20) 
+    title: "CONFIRM DELETE"
+    separator_height: 1
+    GridLayout:
+        id: modal_content
+        cols: 1
+        spacing: dp(15)
+        size_hint_x: 1
+        padding: dp(20)
+        Label:
+            text: 'you are about to delete the lyrics\n[b]"'+root.title_+'"[/b]\nplease Click on the DELETE button\nto confirm this action'
+            markup: True
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: dp(10)
+            #padding: dp(20)
+            MDRaisedButton:
+                id: delete_lyrics_btn
+                text: 'delete'
+                on_release:
+                    root.delete()
+            MDRaisedButton:
+                id: cancel_btn
+                text: 'cancel'
+                on_release:
+                    root.dismiss()
+
+
+<EditLyricsWindow>:
+    update_lyrics_btn: update_lyrics_btn
+    cancel_edit_btn: cancel_edit_btn
+    lyrics_title: lyrics_title
+    lyrics_body: lyrics_body
+    size_hint: 0.4, 0.8 
+    auto_dismiss: False
+    padding: dp(20) 
+    title: "Edit Lyrics"
+    separator_height: 1
+    GridLayout:
+        id: modal_content
+        cols: 1
+        spacing: dp(15)
+        size_hint_x: 1
+        padding: dp(20)
+        TextInput:
+            id: lyrics_title
+            scroll_x: 1
+            scroll_y: 1
+            size_hint_y: None
+            height: dp(35)
+            multiline: False
+            cursor_color: (0,0,0,1)
+        TextInput:
+            id: lyrics_body
+            scroll_x: 1
+            scroll_y: 1
+            size_hint_y: None
+            height: root.height - dp(46) - dp(160)
+            cursor_color: (0,0,0,1)
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: dp(10)
+            #padding: dp(20)
+            MDRaisedButton:
+                id: update_lyrics_btn
+                text: 'update'
+            MDRaisedButton:
+                id: cancel_edit_btn
+                text: 'cancel'
+                on_release:
+                    root.dismiss()
+
+<AddLyricsSubScreen>:
+    name: 'add_lyrics'
+    id: _add_lyrics
+    song_title: song_title
+    lyrics: lyrics
+    _artist: _artist
+    add_lyrics_container: sv
+    BoxLayout:
+        id: _add_lyrics_panel
+        canvas:
+            Color:
+                rgba: root.colors('#DFEAA9')[:-1]+[0.75]
+            Rectangle:
+                size: self.width, self.height #self.size
+                pos: self.pos
+        canvas.after:
+            Color:
+                rgba: root.colors('#222222')
+            Line:
+                rectangle: self.x, self.y, self.width, self.height
+                width: 1.3
+        #orientation: 'vertical')
+        orientation: 'vertical'
+        padding: 15
+        size_hint_x: 0.95
+        pos_hint: {'center_x': 0.5}
+        ScrollView:
+            id: sv
+            size_hint_x: 0.8
+            pos_hint: {'center_x': 0.5}
+            scroll_type: ['bars', 'content']
+            bar_width: dp(10)
+            effect_cls: NoEffect
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: None
+                size_hint_x: 1
+                height: self.minimum_height
+                #pos_hint:{'right':0.5}
+                max_width: dp(200)
+                BoxLayout:
+                    id: form_container
+                    orientation: 'vertical'
+                    size_hint_y: None
+                    size_hint_x: 0.7
+                    height: self.minimum_height
+                    padding: dp(48)
+                    spacing: 20
+                    pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+                    MDLabel:
+                        text: '[color=#222222]Name of Artist[/color]'
+                        font_size: sp(17)
+                        markup: True
+                        #text_size: self.texture_size
+                    Button:
+                        id: artist_name
+                        background_color: 0, 0, 0, 0
+                        color: 1,1,1,0.8 # app.theme_cls.opposite_bg_normal
+                        canvas.after:
+                            Color:
+                                rgba: root.colors('#666666')#'666666')
+                            Triangle:
+                                # points: (self.right-17, self.y+self.height-dp(20), self.right, self.y+self.height-dp(20), (self.right-17+self.right)/2, self.y +dp(10))
+                                points: (self.right-13, self.y+self.height-dp(20), self.right, self.y+self.height-dp(20), (self.right-13+self.right)/2, self.y +dp(15))
+                            Color:
+                                rgba: root.colors('#666666') if self.state == 'normal' else (1,1,1,1)
+                            Line:
+                                points: (self.x, self.y+dp(8), self.x+self.width, self.y+dp(8))
+                        canvas.before:
+                            Color:
+                                rgba:   (1, 1, 1 , 0.1) if self.state=='down' else (0, 1, 0, 0)
+                            Rectangle:
+                                size: self.size
+                                pos: self.pos
+                        size_hint: 1, None
+                        height: dp(36)
+                        theme_text_color: 'Primary'
+                        text_size: self.size
+                        halign: 'left'
+                        valign: 'center'
+                        text: 'Artist Name'
+                        size_hint_y: None
+                        height: dp(40)
+                        color: root.colors('#222222')[:-1]+[0.75]
+                        # pos_hint: {'center_x': 0.5, 'y':0.55}#,'center_y': 0.6}
+                        on_release:
+                            root.show_dropdown(self)
+                    #BubbledTextInput:
+                    #    id: artist_name
+                    #    size_hint: 1, None
+                    #    height: dp(36)
+                    #    cursor_color: 0,0,0,1
+                    #    multiline: False
+                        #hint_text: 'First Name'
+
+                    MDLabel:
+                        text: '\n\n\n\n\n\n\n\n'
+                        font_size: sp(17)
+                    MDLabel:
+                        text: '[color=#222222]Song Title[/color]'
+                        font_size: sp(17)
+                        markup: True
+                    BubbledTextInput:
+                        id: song_title
+                        size_hint: 1, None
+                        height: dp(36)
+                        cursor_color: 0,0,0,1
+                        multiline: False
+                    MDLabel:
+                        text: '\n\n\n\n\n\n\n\n'
+                        font_size: sp(17)
+                    MDLabel:
+                        text: '[color=#222222]Lyrics[/color]'
+                        font_size: sp(17)
+                        markup: True
+                    BubbledTextInput:
+                        id: lyrics
+                        size_hint: 1, None
+                        height: dp(200)
+                        cursor_color: 0,0,0,1
+                        multiline: True
+                        auto_indent: True
+                        # hint_text: 'Enter text to start search'
+                    MDLabel:
+                        id: padding
+                        text: '\n\n\n\n\n\n\n\n'
+                        font_size: sp(17)
+                    MDRaisedButton:
+                        text: 'Add Lyrics'
+                        size_hint: None, None
+                        width: padding.width
+                        on_release:
+                            root.add_lyrics(artist_name=artist_name.text, song_title=song_title.text, lyrics=lyrics.text)
+                    MDRaisedButton:
+                        text: 'clear fields'
+                        size_hint: None, None
+                        width: padding.width
+                        md_bg_color: root.colors('#FDC8C8') 
+                        on_release:
+                            artist_name.text=''
+                            song_title.text = ''
+                            lyrics.text = ''
+                FloatLayout:
+                    id: add_artist
+                    canvas:
+                        Color:
+                            rgba: root.colors('#fafafa')[:-1]+[1]
+                        SmoothLine:
+                            points: self.x, self.y, self.x, self.height
+                    size_hint_x: 0.4
+                    TextInput:
+                        id: _artist
+                        size_hint: 0.7, None
+                        height: dp(35)
+                        #width: search_panel.width - dp(20)
+                        cursor_color: root.colors('#333333')
+                        #line_color_normal: 1,1,1,1
+                        pos_hint: {'center_x':0.5}
+                        top: artist_name.top
+                        hint_text: 'Artist Name'
+                        
+                    MDRaisedButton:
+                        text: 'Add Artist'
+                        size_hint: None, None
+                        top: _artist.y-dp(20)
+                        x: _artist.x
+                        width: _artist.width
+                        on_release:
+                            root.add_artist(artist_name=_artist.text)
+
+<LyricsDatabaseSubScreen>:
+    on_enter:
+        self.get_lyrics_db()
+    name: 'lyrics_database'
+    id: lyrics_databse
+    container: container
+    scrollview: sv
+    GridLayout:
+        canvas.before:
+            Color:
+                rgba: root.colors('#DFEAA9')[:-1]+[0.75]
+            Rectangle:
+                size: self.width, self.height #self.size
+                pos: self.pos 
+        canvas.after:
+            Color:
+                rgba: root.colors('#222222')
+            Line:
+                rectangle: self.x, self.y, self.width, self.height
+                width: 1.3
+        cols: 1
+        #size_hint_y: None
+        #height: self.minimum_height
+        pos_hint: {'center_x': 0.5}
+        size_hint_x: 0.95
+        padding_x: dp(10)
+        # size_hint_x: 0.95
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: dp(46)
+            spacing: 2
+            Label:
+                canvas.before:
+                    Color:
+                        rgba: root.colors('#333333')[:-1]+[1]
+                    Rectangle:
+                        size: self.size#self.size
+                        pos: self.pos#self.pos
+                text: 'Lyrics Title'
+                size_hint_x: 0.3
+                color: root.colors('#ffffff')
+            Label: 
+                canvas.before:
+                    Color:
+                        rgba: root.colors('#333333')[:-1]+[1]
+                    Rectangle:
+                        size: self.size#self.size
+                        pos: self.pos#self.pos
+                text: 'Lyrics Body'
+                size_hint_x: 0.6
+                color: root.colors('#ffffff')
+            Label:
+                canvas.before:
+                    Color:
+                        rgba: root.colors('#333333')[:-1]+[1]
+                    Rectangle:
+                        size: self.size#self.size
+                        pos: self.pos#self.pos
+                size_hint_x: 0.1
+                text: 'Edit'
+                color: root.colors('#ffffff')
+            Label:
+                canvas.before:
+                    Color:
+                        rgba: root.colors('#333333')[:-1]+[1]
+                    Rectangle:
+                        size: self.size#self.size
+                        pos: self.pos#self.pos
+                size_hint_x: 0.1
+                text: 'Delete'
+                color: root.colors('#ffffff')
+        ScrollView:
+            id: sv
+            scroll_type: ['bars', 'content']
+            bar_width: dp(10)
+            effect_cls: NoEffect
+            GridLayout:
+                cols: 1
+                id: container
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: dp(2)
+                    
+
+
+
+<SplashScreen>:
+    id: _splash_screen
+    FloatLayout:
+        size_hint: 1, 1
+        canvas.before:
+            Color:
+                rgba: 1,1,1,1
+            Rectangle:
+                size: self.size
+                pos: self.pos
+        Image:
+            id: _hscc_logo
+            size_hint: None, None
+            size: 149, 0
+            #size: 149, 174
+            #size_hint: 0.1,0.5
+            pos_hint: { 'center_y': 0.55}
+            center_x: root.center_x#-dp(30)
+            opacity: 0
+            source: "res/images/hscc_logo.png"
+        # Label:
+        #    id: _hscc_text_top
+        #    text: 'Honey Streams'
+        #    color: 1,1,1,1
+        ##    size_hint: None, None
+        #    size: 363, 94
+        #    font_size: 72
+        #    pos_hint: {'center_x': 0.5}
+        #    top: _hscc_logo.y
+        #    opacity: 1
+        #    #widthtext_size: self.size
+        #Label:
+        #    id: _hscc_text_bottom
+        #    text: 'Christian Center'
+        #    color: 1,1,1,1
+        #    size_hint: None, None
+        #    size: 271, 65
+        #    font_size: 50
+        #    pos_hint: {'center_x': 0.5}
+        #    top: _hscc_text_top.y
+        #    opacity: 1
+        #    #widthtext_size: self.size
+
+<LyricsSearchSubScreen>:
+    name: 'lyrics_search'
+    id: _lyrics_search
+    search_result_container: search_result_container
+    lyrics_display_widget: lyrics_display_widget
+    lyrics_display_widget_container: lyrics_display_widget_container
+    search_textfield: search_textfield
+    BoxLayout:
+        orientation: 'horizontal'
+        padding: 15, 15, 15, 0
+        spacing: 11
+        BoxLayout:
+            id: search_panel
+            canvas:
+                Color:
+                    rgba: root.colors('#fafafa')[:-1]+[1]
+                Rectangle:
+                    size: self.size#self.size
+                    pos: self.pos#self.pos
+            orientation: 'vertical'
+            size_hint_x: 0.4
+            #padding_y: dp(20)
+            spacing: dp(10)
+            BubbledTextInput:
+                id: search_textfield
+                size_hint: None, None
+                height: dp(36)
+                width: search_panel.width - dp(20)
+                cursor_color: root.colors('#333333')
+                # cursor_blink: True
+                focus: False
+                #line_color_normal: 1,1,1,1
+                pos_hint: {'center_x':0.5}
+                #top: search_panel.top-dp(40)
+                hint_text: 'Start typing to begin search'
+                
+            ##:import MDCheckbox kivymd.selectioncontrols.MDCheckbox
+            ScrollView:
+                canvas.before:
+                    Color:
+                        rgba: root.colors('#eeeeee')[:-1]+[0.5]
+                    Rectangle:
+                        size: self.size
+                        pos: self.pos
+                size_hint: None, None
+                height: search_panel.height - dp(76)
+                width: search_panel.width - dp(20)
+                # height: self.minimum_height#search_panel.height - dp(100)
+                pos_hint: {'center_x': 0.5}
+                # top: search_textfield.y-dp(70)
+                MDList:
+                    id: search_result_container                                
+                        
+            #MDCheckbox:
+            #    id: adv_options
+            #    size_hint: None, None
+            #    size: dp(48), dp(48)
+            #    top: search_textfield.y
+            #    x: search_panel.x+dp(0)
+            #    MDLabel:
+            #        text:'[ref=toggle]toggle options[/ref]'
+            #        x: adv_options.right
+            #        y: adv_options.y
+            #        #size: self.texture_size
+            #        height: dp(48)
+            #        size_hint: None,None
+            #        markup: True
+            #        on_ref_press:
+                        #adv_options.active= not adv_options.active
+            #            print(566)
+
+        BoxLayout:
+            orientation: 'vertical'
+            #size_hint_x: None
+            max_width: dp(499)
+            id: lyrics_display_widget_container
+            BubbledTextInput:
+                id: lyrics_display_widget
+                multiline: True
+                background_color: 1,1,1,0.9
+                readonly: True
+                text: ''
+                hint_text: 'Result for the Lyrics you search for will be displayed here'
+                allow_copy: True
+                cursor_blink: False
+                use_bubble: False
+                cursor_color: 1,1,1,0
+                auto_indent: True
+                padding: dp(20), dp(30)
+                on_focus:
+                    #self.select_all()
+                    # print('focused', self.focus)
+                    Clipboard.copy(self.text) if self.text else None
+                    #root.notify('copied to clipboard') if self.text else None
+                #padding: dp(20)
+                
+<MenuWidget@MDFlatButton>:
+    #size: self.texture_size
+    #text_size: self.size
+    background_color: 1,0,0,1
+    markup: True
+    padding_x: 40
+    size_hint: None, 1
+
+
+<HomeScreen>:
+    on_enter:
+        self.menu_marker.render_line(parent=nav_menu, child=search_lyrics)
+        # self.get_search_result_conatiner_from_kv(search_res_container)
+    id: _home_screen
+    FloatLayout:
+        orientation: 'vertical'
+        canvas.before:
+            Rectangle:
+                size: self.width, self.height # (abs(self.width-root.bg_image.texture_size[0])) *(root.bg_image.texture_size[0]/root.bg_image.texture_size[1])+root.bg_image.texture_size[1] #app.bg_image.texture_size[0], app.bg_image.texture_size[1] # self.size
+                pos: self.pos
+                texture: root.bg_image.texture
+        BoxLayout:
+            id: nav_menu
+            orientation: 'horizontal'
+            size_hint: 1, None
+            height: dp(40)
+            pos_hint: {'top':1}
+            canvas:
+                Color:
+                    rgba: root.colors('#ffffff')
+                Rectangle:
+                    size: self.size#self.size
+                    pos: self.pos#self.pos
+            canvas.after:
+                Color:
+                    rgba: app.theme_cls.primary_color #root.colors('#000000')
+            #    SmoothLine:
+            #        points: (0,self.y, self.width, self.y)
+            #        width: 2
+
+            MenuWidget:
+                id: search_lyrics
+                text: 'Search Lyrics'
+                color: root.colors('#5E5E5E')
+                width: dp(168)
+                on_release:
+                    root.menu_marker.render_line(child=search_lyrics)
+                    _child_scr_mgr.current = 'lyrics_search'
+            MenuWidget:
+                id: add_lyrics
+                text: 'Add Lyrics'
+                color: root.colors('#5E5E5E')
+                width: dp(134)
+                on_release:
+                    root.menu_marker.render_line(child=add_lyrics)
+                    _child_scr_mgr.transition = NoTransition()
+                    _child_scr_mgr.current = 'add_lyrics'
+            MenuWidget:
+                id: view_database
+                text: 'Lyrics Database'
+                color: root.colors('#5E5E5E')
+                width: dp(200)
+                on_release:
+                    root.menu_marker.render_line(child=view_database)
+                    _child_scr_mgr.transition = NoTransition()
+                    _child_scr_mgr.current = 'lyrics_database'
+            # MenuWidget:
+            #     id: help
+            #     text: 'help'
+            #     color: root.colors('#5E5E5E')
+            #     width: dp(200)
+            #     on_release:
+            #         root.menu_marker.render_line(child=help)
+            #         _child_scr_mgr.transition = NoTransition()
+            #         _child_scr_mgr.current = 'help'
+
+
+        Image:
+            source: 'res/images/hscc_logo.png'
+            size_hint: None, None
+            pos_hint: {'right': 1, 'top': 1}
+            height: nav_menu.height
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: None
+            height: Window.height - nav_menu.height-15
+            padding: 0, 0, 0, dp(15)
+            ScreenManager:
+                id: _child_scr_mgr
+                LyricsSearchSubScreen:
+                    notification_widget: _notification
+                LyricsDatabaseSubScreen:
+                    notification_widget: _notification
+                    trigger_db_retrieval: add_lyrics_sscr.trigger_db_retrieval
+                # Screen:
+                #     name:'help'
+                AddLyricsSubScreen: 
+                    id: add_lyrics_sscr
+                    notification_widget: _notification
+    Label:
+        canvas.before:
+            Color:
+                rgba: root.colors('#222222')[:-1]+[0.9]
+            Rectangle:
+                size: self.size
+                pos: self.pos
+        id: _notification
+        opacity: 0
+        size_hint: None, None
+        color: 1,1,1,1
+        height: dp(30)
+        width: self.texture_size[0]
+        padding: dp(30),dp(50)
+        #text: 'errorhdhdhhdhdhddh'
+        markup: True
+        #center_x: form_container.center_x
+        #center_y: form_container.center_y                           
+        
